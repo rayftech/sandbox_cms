@@ -5,7 +5,7 @@
     "singularName": "course",
     "pluralName": "courses",
     "displayName": "Course",
-    "description": ""
+    "description": "course content type for academic users"
   },
   "options": {
     "draftAndPublish": true
@@ -99,6 +99,15 @@
     "country": {
       "type": "string",
       "required": true
+    },
+    "courseLevel": {
+      "type": "enumeration",
+      "enum": [
+        "Undergraduate 1st & 2nd year",
+        "Undergraduate penultimate & final year",
+        "Postgraduate",
+        "Other"
+      ]
     }
   }
 }
