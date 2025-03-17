@@ -1,0 +1,104 @@
+{
+  "kind": "collectionType",
+  "collectionName": "courses",
+  "info": {
+    "singularName": "course",
+    "pluralName": "courses",
+    "displayName": "Course",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      },
+      "private": true,
+      "unique": false
+    },
+    "userId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "expectedEnrollment": {
+      "type": "integer"
+    },
+    "description": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "assessmentRedesign": {
+      "type": "blocks"
+    },
+    "targetIndustryPartnership": {
+      "type": "enumeration",
+      "enum": [
+        "Information System",
+        "Information Technology",
+        "Cyber Security",
+        "Accounting",
+        "Education",
+        "Supply Chain",
+        "Fintech"
+      ],
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "preferredPartnerRepresentative": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "startDate": {
+      "type": "date"
+    },
+    "endDate": {
+      "type": "date"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "required": true
+    },
+    "courseStatus": {
+      "type": "enumeration",
+      "enum": [
+        "upcoming",
+        "ongoing",
+        "complete"
+      ],
+      "default": "upcoming"
+    },
+    "country": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

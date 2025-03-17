@@ -1,20 +1,24 @@
-// import type { Core } from '@strapi/strapi';
+// sandbox_cms/src/index.ts
+import { rabbitmq } from './services/rabbitmq';
 
 export default {
   /**
    * An asynchronous register function that runs before
    * your application is initialized.
-   *
-   * This gives you an opportunity to extend code.
    */
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register(/* { strapi } */) {},
 
   /**
    * An asynchronous bootstrap function that runs before
    * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  async bootstrap({ strapi }) {
+    // Initialize RabbitMQ connection
+    try {
+      await rabbitmq.connect();
+      strapi.log.info('RabbitMQ connection initialized successfully');
+    } catch (error) {
+      strapi.log.error(`Failed to initialize RabbitMQ connection: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  },
 };
