@@ -1,46 +1,72 @@
 // sandbox_cms/src/api/course/content-types/course/lifecycles.ts
 import { rabbitmq, QueueType } from '../../../services/rabbitmq';
 
+
+interface LifecycleEvent {
+    action: string;
+    params: {
+      data?: any;
+      where?: any;
+      select?: any;
+      [key: string]: any;
+    };
+    result: any;
+    state: {
+      user?: any;
+      [key: string]: any;
+    };
+  }
+
 export default {
-  async afterCreate(event) {
-    const { result } = event;
-    
-    try {
-      // Format industry partnerships if it's a relation
-      let industries = [];
-      if (result.targetIndustryPartnership && Array.isArray(result.targetIndustryPartnership.data)) {
-        industries = result.targetIndustryPartnership.data.map(industry => ({
-          id: industry.id,
-          name: industry.attributes.name
-        }));
-      }
-      
-      // Notify external backend about new course
-      await rabbitmq.sendToQueue(QueueType.COURSE_CREATED, {
-        id: result.id,
-        userId: result.userId,
-        code: result.code,
-        name: result.name,
-        expectedEnrollment: result.expectedEnrollment,
-        description: result.description,
-        assessmentRedesign: result.assessmentRedesign,
-        targetIndustryPartnership: industries,
-        preferredPartnerRepresentative: result.preferredPartnerRepresentative,
-        startDate: result.startDate,
-        endDate: result.endDate,
-        isActive: result.isActive,
-        status: result.status,
-        country: result.country,
-        createdAt: result.createdAt
-      });
-      
-      strapi.log.info(`Course created notification sent for course ID: ${result.id}`);
-    } catch (error) {
-      strapi.log.error(`Failed to send course creation notification: ${error instanceof Error ? error.message : String(error)}`);
-    }
-  },
+    async afterCreate(event: LifecycleEvent) {
+        const { result } = event;
+        
+        console.log('afterCreate lifecycle hook triggered for course:', result.id);
+        
+        try {
+          // Ensure queue exists
+          await rabbitmq.assertQueue(QueueType.COURSE_CREATED);
+          
+          // Format industry partnerships if it's a relation
+          let industries = [];
+          if (result.targetIndustryPartnership && Array.isArray(result.targetIndustryPartnership.data)) {
+            industries = result.targetIndustryPartnership.data.map(industry => ({
+              id: industry.id,
+              name: industry.attributes.name
+            }));
+          }
+          
+          // Prepare message
+          const message = {
+            id: result.id,
+            userId: result.userId,
+            code: result.code,
+            name: result.name,
+            expectedEnrollment: result.expectedEnrollment,
+            description: result.description,
+            assessmentRedesign: result.assessmentRedesign,
+            targetIndustryPartnership: industries,
+            preferredPartnerRepresentative: result.preferredPartnerRepresentative,
+            startDate: result.startDate,
+            endDate: result.endDate,
+            isActive: result.isActive,
+            status: result.status,
+            country: result.country,
+            createdAt: result.createdAt
+          };
+          
+          console.log('Sending message to queue:', QueueType.COURSE_CREATED);
+          
+          // Send message to queue
+          const sent = await rabbitmq.sendToQueue(QueueType.COURSE_CREATED, message);
+          console.log('Message sent successfully:', sent);
+          
+        } catch (error) {
+          console.error(`Failed to send course creation notification: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    },
   
-  async afterUpdate(event) {
+  async afterUpdate(event: LifecycleEvent) {
     const { result } = event;
     
     try {
@@ -79,7 +105,7 @@ export default {
     }
   },
   
-  async beforeDelete(event) {
+  async beforeDelete(event: LifecycleEvent) {
     const { id } = event.params;
     
     try {
@@ -98,7 +124,7 @@ export default {
     }
   },
   
-  async afterDelete(event) {
+  async afterDelete(event: LifecycleEvent) {
     const { id } = event.params;
     
     try {

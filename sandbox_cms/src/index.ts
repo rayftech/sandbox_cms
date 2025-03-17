@@ -1,24 +1,23 @@
-// sandbox_cms/src/index.ts
-import { rabbitmq } from './services/rabbitmq';
+// src/index.ts
+import { rabbitmq, QueueType } from './services/rabbitmq';
 
 export default {
-  /**
-   * An asynchronous register function that runs before
-   * your application is initialized.
-   */
   register(/* { strapi } */) {},
 
-  /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   */
   async bootstrap({ strapi }) {
     // Initialize RabbitMQ connection
     try {
       await rabbitmq.connect();
-      strapi.log.info('RabbitMQ connection initialized successfully');
+      console.log('RabbitMQ connection initialized successfully');
+      
+      // Assert all the queues we need
+      await rabbitmq.assertQueue(QueueType.COURSE_CREATED);
+      await rabbitmq.assertQueue(QueueType.COURSE_UPDATED);
+      await rabbitmq.assertQueue(QueueType.COURSE_DELETED);
+      
+      console.log('All RabbitMQ queues have been asserted');
     } catch (error) {
-      strapi.log.error(`Failed to initialize RabbitMQ connection: ${error instanceof Error ? error.message : String(error)}`);
+      console.error(`Failed to initialize RabbitMQ: ${error instanceof Error ? error.message : String(error)}`);
     }
   },
 };

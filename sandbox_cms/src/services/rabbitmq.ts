@@ -28,6 +28,7 @@ class RabbitMQService {
     }
 
     try {
+      console.log('Attempting to connect to RabbitMQ...');
       const connectionString = `amqp://${this.user}:${this.password}@${this.host}:${this.port}${this.vhost}`;
       this.connection = await amqp.connect(connectionString);
       
@@ -58,6 +59,25 @@ class RabbitMQService {
   resetConnection(): void {
     this.channel = null;
     this.connection = null;
+  }
+
+  // Add this method to your RabbitMQService class
+  async assertQueue(
+    queue: string | QueueType, 
+    options: any = { durable: true }
+  ): Promise<any> {
+    const channel = await this.getChannel();
+    if (!channel) return null;
+
+    try {
+      console.log(`Asserting queue: ${queue}`);
+      const result = await channel.assertQueue(queue.toString(), options);
+      console.log(`Queue ${queue} asserted successfully`);
+      return result;
+    } catch (error) {
+      console.error(`Failed to assert queue '${queue}': ${error instanceof Error ? error.message : String(error)}`);
+      return null;
+    }
   }
 
   async sendToQueue(
