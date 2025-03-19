@@ -11,9 +11,15 @@ export default {
       console.log('RabbitMQ connection initialized successfully');
       
       // Assert all the queues we need
+      // Course queues
       await rabbitmq.assertQueue(QueueType.COURSE_CREATED);
       await rabbitmq.assertQueue(QueueType.COURSE_UPDATED);
       await rabbitmq.assertQueue(QueueType.COURSE_DELETED);
+      
+      // Challenge queues
+      await rabbitmq.assertQueue(QueueType.CHALLENGE_CREATED);
+      await rabbitmq.assertQueue(QueueType.CHALLENGE_UPDATED);
+      await rabbitmq.assertQueue(QueueType.CHALLENGE_DELETED);
       
       console.log('All RabbitMQ queues have been asserted');
     } catch (error) {

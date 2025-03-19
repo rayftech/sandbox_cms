@@ -7,10 +7,14 @@ export enum QueueType {
   PARTNERSHIP_REQUEST = 'partnership_request',
   ANALYTICS = 'analytics',
   EMAIL = 'email',
-  // Add these for course synchronization
+  // Course queues
   COURSE_CREATED = 'course_created',
   COURSE_UPDATED = 'course_updated',
-  COURSE_DELETED = 'course_deleted'
+  COURSE_DELETED = 'course_deleted',
+  // Challenge queues
+  CHALLENGE_CREATED = 'challenge_created',
+  CHALLENGE_UPDATED = 'challenge_updated',
+  CHALLENGE_DELETED = 'challenge_deleted'
 }
 
 class RabbitMQService {
@@ -61,7 +65,6 @@ class RabbitMQService {
     this.connection = null;
   }
 
-  // Add this method to your RabbitMQService class
   async assertQueue(
     queue: string | QueueType, 
     options: any = { durable: true }
