@@ -30,12 +30,12 @@
     "userId": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
     },
     "code": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
     },
     "expectedEnrollment": {
       "type": "integer"
@@ -54,13 +54,26 @@
     "targetIndustryPartnership": {
       "type": "enumeration",
       "enum": [
-        "Information System",
-        "Information Technology",
-        "Cyber Security",
-        "Accounting",
-        "Education",
-        "Supply Chain",
-        "Fintech"
+        "Financial Services",
+        "Technology Consulting",
+        "Cybersecurity",
+        "Digital Transformation",
+        "Data Analytics",
+        "Enterprise Software",
+        "Healthcare Information Systems",
+        "Government & Public Sector",
+        "Retail Technology",
+        "Supply Chain & Logistics",
+        "Fintech",
+        "Education Technology",
+        "Manufacturing Systems",
+        "Professional Services",
+        "Business Process Outsourcing",
+        "Cloud Services",
+        "E-commerce",
+        "Telecommunications",
+        "Intellectual Property & Digital Assets",
+        "Business Intelligence"
       ],
       "pluginOptions": {
         "i18n": {
@@ -107,6 +120,17 @@
         "Undergraduate penultimate & final year",
         "Postgraduate",
         "Other"
+      ]
+    },
+    "multimedia": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
       ]
     }
   }

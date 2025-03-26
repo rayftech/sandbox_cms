@@ -79,9 +79,26 @@
     "targetAcademicPartnership": {
       "type": "enumeration",
       "enum": [
-        "Information System",
-        "Information Technology",
-        "Accounting"
+        "Information Systems",
+        "Business Analytics",
+        "Cybersecurity",
+        "Enterprise Systems",
+        "Digital Innovation",
+        "Business Process Management",
+        "User Experience Design",
+        "Data Science",
+        "Artificial Intelligence",
+        "IT Governance",
+        "Business Intelligence",
+        "Cloud Computing",
+        "Digital Transformation",
+        "Systems Integration",
+        "Blockchain & Digital Assets",
+        "Information Management",
+        "Technology Strategy",
+        "Decision Support Systems",
+        "Metaverse Technologies",
+        "IT Service Management"
       ]
     },
     "studentLevel": {
@@ -123,6 +140,17 @@
           "localized": true
         }
       }
+    },
+    "multimedia": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }

@@ -1,5 +1,6 @@
 // src/index.ts
 import { rabbitmq, QueueType } from './services/rabbitmq';
+import expressSync from './services/express-sync';
 
 export default {
   register(/* { strapi } */) {},
@@ -21,6 +22,8 @@ export default {
       await rabbitmq.assertQueue(QueueType.CHALLENGE_UPDATED);
       await rabbitmq.assertQueue(QueueType.CHALLENGE_DELETED);
       
+      // Initialize Express sync service
+      await expressSync.initialize();
       console.log('All RabbitMQ queues have been asserted');
     } catch (error) {
       console.error(`Failed to initialize RabbitMQ: ${error instanceof Error ? error.message : String(error)}`);

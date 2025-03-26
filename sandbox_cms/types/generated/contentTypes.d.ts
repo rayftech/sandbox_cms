@@ -423,6 +423,10 @@ export interface ApiChallengeChallenge extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::challenge.challenge'
     >;
+    multimedia: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     name: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.SetPluginOptions<{
@@ -458,7 +462,28 @@ export interface ApiChallengeChallenge extends Struct.CollectionTypeSchema {
       ]
     >;
     targetAcademicPartnership: Schema.Attribute.Enumeration<
-      ['Information System', 'Information Technology', 'Accounting']
+      [
+        'Information Systems',
+        'Business Analytics',
+        'Cybersecurity',
+        'Enterprise Systems',
+        'Digital Innovation',
+        'Business Process Management',
+        'User Experience Design',
+        'Data Science',
+        'Artificial Intelligence',
+        'IT Governance',
+        'Business Intelligence',
+        'Cloud Computing',
+        'Digital Transformation',
+        'Systems Integration',
+        'Blockchain & Digital Assets',
+        'Information Management',
+        'Technology Strategy',
+        'Decision Support Systems',
+        'Metaverse Technologies',
+        'IT Service Management',
+      ]
     >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -492,9 +517,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
   };
   attributes: {
     assessmentRedesign: Schema.Attribute.Blocks;
-    code: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    code: Schema.Attribute.String & Schema.Attribute.Required;
     country: Schema.Attribute.String & Schema.Attribute.Required;
     courseLevel: Schema.Attribute.Enumeration<
       [
@@ -524,6 +547,10 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
       Schema.Attribute.DefaultTo<true>;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::course.course'>;
+    multimedia: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
     name: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.Private &
@@ -542,13 +569,26 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     startDate: Schema.Attribute.Date;
     targetIndustryPartnership: Schema.Attribute.Enumeration<
       [
-        'Information System',
-        'Information Technology',
-        'Cyber Security',
-        'Accounting',
-        'Education',
-        'Supply Chain',
+        'Financial Services',
+        'Technology Consulting',
+        'Cybersecurity',
+        'Digital Transformation',
+        'Data Analytics',
+        'Enterprise Software',
+        'Healthcare Information Systems',
+        'Government & Public Sector',
+        'Retail Technology',
+        'Supply Chain & Logistics',
         'Fintech',
+        'Education Technology',
+        'Manufacturing Systems',
+        'Professional Services',
+        'Business Process Outsourcing',
+        'Cloud Services',
+        'E-commerce',
+        'Telecommunications',
+        'Intellectual Property & Digital Assets',
+        'Business Intelligence',
       ]
     > &
       Schema.Attribute.SetPluginOptions<{
@@ -559,9 +599,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    userId: Schema.Attribute.String &
-      Schema.Attribute.Required &
-      Schema.Attribute.Unique;
+    userId: Schema.Attribute.String & Schema.Attribute.Required;
   };
 }
 
