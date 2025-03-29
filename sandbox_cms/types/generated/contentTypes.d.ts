@@ -401,6 +401,7 @@ export interface ApiChallengeChallenge extends Struct.CollectionTypeSchema {
     challengeStatus: Schema.Attribute.Enumeration<
       ['upcoming', 'ongoing', 'complete']
     >;
+    companyName: Schema.Attribute.String;
     country: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {
@@ -534,12 +535,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    description: Schema.Attribute.Text &
-      Schema.Attribute.SetPluginOptions<{
-        i18n: {
-          localized: true;
-        };
-      }>;
+    description: Schema.Attribute.Blocks;
     endDate: Schema.Attribute.Date;
     expectedEnrollment: Schema.Attribute.Integer;
     isActive: Schema.Attribute.Boolean &
@@ -559,6 +555,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
           localized: true;
         };
       }>;
+    organisation: Schema.Attribute.String;
     preferredPartnerRepresentative: Schema.Attribute.String &
       Schema.Attribute.SetPluginOptions<{
         i18n: {

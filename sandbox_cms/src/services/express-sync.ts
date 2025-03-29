@@ -22,7 +22,6 @@ interface SyncOperationRequest {
   userId?: string;
   data: any;
   timestamp: Date;
-
   backendId?: string
 }
 
@@ -36,13 +35,60 @@ interface SyncOperationResponse {
   data?: any;
   error?: string;
   timestamp: Date;
-
   backendId?: string
 }
 
 // Queue names for the sync operations
 const SYNC_REQUEST_QUEUE = 'strapi_operation_requests';
 const SYNC_RESPONSE_QUEUE = 'strapi_operation_responses';
+
+/**
+ * Valid values for industry partnerships based on schema.json
+ */
+const VALID_INDUSTRY_PARTNERSHIPS = [
+  'Financial Services',
+  'Technology Consulting',
+  'Cybersecurity',
+  'Digital Transformation',
+  'Data Analytics',
+  'Enterprise Software',
+  'Healthcare Information Systems',
+  'Government & Public Sector',
+  'Retail Technology',
+  'Supply Chain & Logistics',
+  'Fintech',
+  'Education Technology',
+  'Manufacturing Systems',
+  'Professional Services',
+  'Business Process Outsourcing',
+  'Cloud Services',
+  'E-commerce',
+  'Telecommunications',
+  'Intellectual Property & Digital Assets',
+  'Business Intelligence'
+];
+
+/**
+ * Converts plain text to Strapi blocks format for rich text fields
+ * @param text Plain text string, potentially with Markdown formatting
+ * @returns Structured blocks format for Strapi rich text editor
+ */
+function convertTextToBlocks(text) {
+  if (!text || typeof text !== 'string') {
+    return [];
+  }
+  
+  console.log('Converting text to blocks format');
+  
+  return [
+    {
+      type: 'paragraph',
+      children: [
+        { type: 'text', text: text }
+      ]
+    }
+  ];
+}
 
 /**
  * Service for handling synchronization requests from Express backend
@@ -170,29 +216,69 @@ async createCourse(data) {
       // Remove strapiId if present to prevent validation errors
       const { ...courseData } = data;
       
-
-    // Validate and normalize industry partnership
-    if (courseData.targetIndustryPartnership) {
-        const validPartnerships = [
-          'Information System', 
-          'Information Technology', 
-          'Cyber Security', 
-          'Accounting', 
-          'Education', 
-          'Supply Chain', 
-          'Fintech'
-        ];
-
-        const normalizedPartnership = validPartnerships.find(
-            p => p.toLowerCase() === String(courseData.targetIndustryPartnership).toLowerCase()
+      console.log('Processing course data:', JSON.stringify({
+        name: courseData.name,
+        code: courseData.code,
+        hasDescription: !!courseData.description
+      }));
+      
+      // Validate and normalize industry partnership
+      if (courseData.targetIndustryPartnership) {
+        // Match the industry partnership with schema-defined values
+        const industry = courseData.targetIndustryPartnership;
+        
+        // First try to find an exact match (case-sensitive)
+        let normalizedPartnership = VALID_INDUSTRY_PARTNERSHIPS.find(
+          p => p === industry
+        );
+        
+        // If no exact match, try case-insensitive match
+        if (!normalizedPartnership) {
+          normalizedPartnership = VALID_INDUSTRY_PARTNERSHIPS.find(
+            p => p.toLowerCase() === industry.toLowerCase()
           );
-    
-          if (!normalizedPartnership) {
-            throw new Error(`Invalid target industry partnership: ${courseData.targetIndustryPartnership}`);
-          }
-    
-          courseData.targetIndustryPartnership = normalizedPartnership;
         }
+        
+        // If still no match, try with spaces removed (to handle cases like "HealthcareInformationSystems")
+        if (!normalizedPartnership) {
+          const noSpaceIndustry = industry.replace(/\s+/g, '');
+          const partnerships = VALID_INDUSTRY_PARTNERSHIPS.map(p => ({
+            original: p,
+            noSpace: p.replace(/\s+/g, '')
+          }));
+          
+          const match = partnerships.find(p => 
+            p.noSpace.toLowerCase() === noSpaceIndustry.toLowerCase()
+          );
+          
+          if (match) {
+            normalizedPartnership = match.original;
+          }
+        }
+    
+        if (!normalizedPartnership) {
+          throw new Error(`Invalid target industry partnership: ${industry}`);
+        }
+    
+        courseData.targetIndustryPartnership = normalizedPartnership;
+      }
+
+      // Convert description from text to blocks format if it exists and is a string
+      if (courseData.description && typeof courseData.description === 'string') {
+        courseData.description = convertTextToBlocks(courseData.description);
+      }
+      
+      // Map courseLevel if needed
+      if (courseData.level && !courseData.courseLevel) {
+        const levelMapping = {
+          'Undergraduate 1st & 2nd year': 'Undergraduate 1st & 2nd year',
+          'Undergraduate penultimate & final year': 'Undergraduate penultimate & final year',
+          'Postgraduate': 'Postgraduate',
+          'Other': 'Other'
+        };
+        
+        courseData.courseLevel = levelMapping[courseData.level] || courseData.level;
+      }
 
       // Set metadata to identify source of the operation
       const preparedCourseData = {
@@ -203,10 +289,17 @@ async createCourse(data) {
         publishedAt: new Date()
       };
 
-    // Ensure global.strapi is available
+      // Ensure global.strapi is available
       if (!global.strapi) {
         throw new Error('Strapi global object is not available');
       }
+      
+      console.log('Final prepared course data:', JSON.stringify({
+        name: preparedCourseData.name,
+        code: preparedCourseData.code,
+        targetIndustryPartnership: preparedCourseData.targetIndustryPartnership,
+        descriptionFormat: preparedCourseData.description ? 'blocks structure' : 'none'
+      }));
       
       // Create course using entityService
       const course = await strapi.entityService.create('api::course.course', {
@@ -234,6 +327,55 @@ async createCourse(data) {
         throw new Error('Course ID is required for update operation');
       }
       
+      // Validate and normalize industry partnership if present
+      if (updateData.targetIndustryPartnership) {
+        const industry = updateData.targetIndustryPartnership;
+        
+        // Try various matching strategies as in createCourse
+        let normalizedPartnership = VALID_INDUSTRY_PARTNERSHIPS.find(
+          p => p === industry || p.toLowerCase() === industry.toLowerCase()
+        );
+        
+        if (!normalizedPartnership) {
+          const noSpaceIndustry = industry.replace(/\s+/g, '');
+          const partnerships = VALID_INDUSTRY_PARTNERSHIPS.map(p => ({
+            original: p,
+            noSpace: p.replace(/\s+/g, '')
+          }));
+          
+          const match = partnerships.find(p => 
+            p.noSpace.toLowerCase() === noSpaceIndustry.toLowerCase()
+          );
+          
+          if (match) {
+            normalizedPartnership = match.original;
+          }
+        }
+    
+        if (!normalizedPartnership) {
+          throw new Error(`Invalid target industry partnership: ${industry}`);
+        }
+    
+        updateData.targetIndustryPartnership = normalizedPartnership;
+      }
+      
+      // Convert description from text to blocks format if it exists and is a string
+      if (updateData.description && typeof updateData.description === 'string') {
+        updateData.description = convertTextToBlocks(updateData.description);
+      }
+      
+      // Map courseLevel if needed
+      if (updateData.level && !updateData.courseLevel) {
+        const levelMapping = {
+          'Undergraduate 1st & 2nd year': 'Undergraduate 1st & 2nd year',
+          'Undergraduate penultimate & final year': 'Undergraduate penultimate & final year',
+          'Postgraduate': 'Postgraduate',
+          'Other': 'Other'
+        };
+        
+        updateData.courseLevel = levelMapping[updateData.level] || updateData.level;
+      }
+      
       // Set metadata to identify source of the operation
       const courseData = {
         ...updateData,
@@ -241,6 +383,14 @@ async createCourse(data) {
           source: 'express_sync'
         }
       };
+      
+      console.log('Updating course with data:', JSON.stringify({
+        id,
+        name: updateData.name,
+        code: updateData.code,
+        targetIndustryPartnership: updateData.targetIndustryPartnership,
+        descriptionFormat: updateData.description ? 'blocks structure' : 'unchanged'
+      }));
       
       // Update course using entityService
       const course = await strapi.entityService.update('api::course.course', id, {
@@ -280,9 +430,18 @@ async createCourse(data) {
    */
   async createChallenge(data) {
     try {
+      const { ...challengeData } = data;
+      
+      // Convert various rich text fields if they exist and are strings
+      ['detailDescription', 'Aim', 'potentialSolution', 'additionalInformation'].forEach(field => {
+        if (challengeData[field] && typeof challengeData[field] === 'string') {
+          challengeData[field] = convertTextToBlocks(challengeData[field]);
+        }
+      });
+      
       // Set metadata to identify source of the operation
-      const challengeData = {
-        ...data,
+      const preparedChallengeData = {
+        ...challengeData,
         meta: {
           source: 'express_sync'
         },
@@ -291,7 +450,7 @@ async createCourse(data) {
       
       // Create challenge using entityService
       const challenge = await strapi.entityService.create('api::challenge.challenge', {
-        data: challengeData
+        data: preparedChallengeData
       });
       
       return { id: challenge.id, ...challenge };
@@ -311,6 +470,13 @@ async createCourse(data) {
       if (!id) {
         throw new Error('Challenge ID is required for update operation');
       }
+      
+      // Convert various rich text fields if they exist and are strings
+      ['detailDescription', 'Aim', 'potentialSolution', 'additionalInformation'].forEach(field => {
+        if (updateData[field] && typeof updateData[field] === 'string') {
+          updateData[field] = convertTextToBlocks(updateData[field]);
+        }
+      });
       
       // Set metadata to identify source of the operation
       const challengeData = {

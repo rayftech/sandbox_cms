@@ -40,14 +40,6 @@
     "expectedEnrollment": {
       "type": "integer"
     },
-    "description": {
-      "type": "text",
-      "pluginOptions": {
-        "i18n": {
-          "localized": true
-        }
-      }
-    },
     "assessmentRedesign": {
       "type": "blocks"
     },
@@ -132,6 +124,12 @@
         "videos",
         "audios"
       ]
+    },
+    "organisation": {
+      "type": "string"
+    },
+    "description": {
+      "type": "blocks"
     }
   }
 }
