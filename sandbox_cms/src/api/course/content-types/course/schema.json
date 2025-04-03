@@ -8,7 +8,7 @@
     "description": "course content type for academic users"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {
     "i18n": {
@@ -130,6 +130,10 @@
     },
     "description": {
       "type": "blocks"
+    },
+    "isPartnered": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

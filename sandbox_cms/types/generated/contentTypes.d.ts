@@ -378,7 +378,7 @@ export interface ApiChallengeChallenge extends Struct.CollectionTypeSchema {
     singularName: 'challenge';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   pluginOptions: {
     i18n: {
@@ -419,6 +419,7 @@ export interface ApiChallengeChallenge extends Struct.CollectionTypeSchema {
       }>;
     endDate: Schema.Attribute.Date;
     isActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    isPartnered: Schema.Attribute.Boolean;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -509,7 +510,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     singularName: 'course';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   pluginOptions: {
     i18n: {
@@ -541,6 +542,7 @@ export interface ApiCourseCourse extends Struct.CollectionTypeSchema {
     isActive: Schema.Attribute.Boolean &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<true>;
+    isPartnered: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::course.course'>;
     multimedia: Schema.Attribute.Media<

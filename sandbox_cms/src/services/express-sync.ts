@@ -212,109 +212,133 @@ export default {
    * Create a course in Strapi
    */
 async createCourse(data) {
-    try {
-      // Remove strapiId if present to prevent validation errors
-      const { ...courseData } = data;
-      
-      console.log('Processing course data:', JSON.stringify({
-        name: courseData.name,
-        code: courseData.code,
-        hasDescription: !!courseData.description
-      }));
-      
-      // Validate and normalize industry partnership
-      if (courseData.targetIndustryPartnership) {
-        // Match the industry partnership with schema-defined values
-        const industry = courseData.targetIndustryPartnership;
-        
-        // First try to find an exact match (case-sensitive)
-        let normalizedPartnership = VALID_INDUSTRY_PARTNERSHIPS.find(
-          p => p === industry
-        );
-        
-        // If no exact match, try case-insensitive match
-        if (!normalizedPartnership) {
-          normalizedPartnership = VALID_INDUSTRY_PARTNERSHIPS.find(
-            p => p.toLowerCase() === industry.toLowerCase()
-          );
-        }
-        
-        // If still no match, try with spaces removed (to handle cases like "HealthcareInformationSystems")
-        if (!normalizedPartnership) {
-          const noSpaceIndustry = industry.replace(/\s+/g, '');
-          const partnerships = VALID_INDUSTRY_PARTNERSHIPS.map(p => ({
-            original: p,
-            noSpace: p.replace(/\s+/g, '')
-          }));
-          
-          const match = partnerships.find(p => 
-            p.noSpace.toLowerCase() === noSpaceIndustry.toLowerCase()
-          );
-          
-          if (match) {
-            normalizedPartnership = match.original;
-          }
-        }
-    
-        if (!normalizedPartnership) {
-          throw new Error(`Invalid target industry partnership: ${industry}`);
-        }
-    
-        courseData.targetIndustryPartnership = normalizedPartnership;
-      }
-
-      // Convert description from text to blocks format if it exists and is a string
-      if (courseData.description && typeof courseData.description === 'string') {
-        courseData.description = convertTextToBlocks(courseData.description);
-      }
-      
-      // Map courseLevel if needed
-      if (courseData.level && !courseData.courseLevel) {
-        const levelMapping = {
-          'Undergraduate 1st & 2nd year': 'Undergraduate 1st & 2nd year',
-          'Undergraduate penultimate & final year': 'Undergraduate penultimate & final year',
-          'Postgraduate': 'Postgraduate',
-          'Other': 'Other'
-        };
-        
-        courseData.courseLevel = levelMapping[courseData.level] || courseData.level;
-      }
-
-      // Set metadata to identify source of the operation
-      const preparedCourseData = {
-        ...courseData,
-        meta: {
-          source: 'express_sync'
-        },
-        publishedAt: new Date()
-      };
-
-      // Ensure global.strapi is available
-      if (!global.strapi) {
-        throw new Error('Strapi global object is not available');
-      }
-      
-      console.log('Final prepared course data:', JSON.stringify({
-        name: preparedCourseData.name,
-        code: preparedCourseData.code,
-        targetIndustryPartnership: preparedCourseData.targetIndustryPartnership,
-        descriptionFormat: preparedCourseData.description ? 'blocks structure' : 'none'
-      }));
-      
-      // Create course using entityService
-      const course = await strapi.entityService.create('api::course.course', {
-        data: preparedCourseData
-      });
-      
-      return { 
-        id: course.id,  // Strapi's internal ID 
-        ...course 
-      };
-    } catch (error) {
-      console.error(`Error creating course: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
+  try {
+    // Validate required fields
+    if (!data.userId) {
+      throw new Error('User ID is required');
     }
-  },
+    if (!data.name) {
+      throw new Error('Course name is required');
+    }
+    if (!data.code) {
+      throw new Error('Course code is required');
+    }
+    if (!data.country) {
+      throw new Error('Country is required');
+    }
+
+    // Prepare course data with default values and validations
+    const courseData: any = {
+      userId: data.userId,
+      name: data.name,
+      code: data.code,
+      country: data.country,
+      
+      // Set default values from schema
+      isActive: data.isActive ?? true,
+      courseStatus: data.courseStatus || 'upcoming',
+    };
+
+    // Validate and normalize industry partnership
+    if (data.targetIndustryPartnership) {
+      const validPartnerships = [
+        "Financial Services", "Technology Consulting", "Cybersecurity", 
+        "Digital Transformation", "Data Analytics", "Enterprise Software", 
+        "Healthcare Information Systems", "Government & Public Sector", 
+        "Retail Technology", "Supply Chain & Logistics", "Fintech", 
+        "Education Technology", "Manufacturing Systems", "Professional Services", 
+        "Business Process Outsourcing", "Cloud Services", "E-commerce", 
+        "Telecommunications", "Intellectual Property & Digital Assets", 
+        "Business Intelligence"
+      ];
+
+      const normalizedPartnership = validPartnerships.find(
+        p => p.toLowerCase() === String(data.targetIndustryPartnership).toLowerCase()
+      );
+
+      if (!normalizedPartnership) {
+        throw new Error(`Invalid target industry partnership: ${data.targetIndustryPartnership}`);
+      }
+
+      courseData.targetIndustryPartnership = normalizedPartnership;
+    }
+
+    // Optional fields with validation
+    if (data.startDate) {
+      courseData.startDate = data.startDate;
+    }
+
+    if (data.endDate) {
+      courseData.endDate = data.endDate;
+    }
+
+    // Validate course level
+    if (data.courseLevel) {
+      const validLevels = [
+        "Undergraduate 1st & 2nd year", 
+        "Undergraduate penultimate & final year", 
+        "Postgraduate", 
+        "Other"
+      ];
+
+      const normalizedLevel = validLevels.find(
+        l => l.toLowerCase() === String(data.courseLevel).toLowerCase()
+      );
+
+      if (!normalizedLevel) {
+        throw new Error(`Invalid course level: ${data.courseLevel}`);
+      }
+
+      courseData.courseLevel = normalizedLevel;
+    }
+
+    // Convert description to blocks if it's a string
+    if (data.description) {
+      courseData.description = typeof data.description === 'string' 
+        ? [{ 
+            type: 'paragraph', 
+            children: [{ type: 'text', text: data.description }] 
+          }]
+        : data.description;
+    }
+
+    // Optional numeric fields
+    if (data.expectedEnrollment !== undefined) {
+      courseData.expectedEnrollment = Number(data.expectedEnrollment);
+    }
+
+    // Additional optional fields
+    if (data.organisation) {
+      courseData.organisation = data.organisation;
+    }
+
+    // Optional boolean field for partnership status
+    if (data.isPartnered !== undefined) {
+      courseData.isPartnered = Boolean(data.isPartnered);
+    }
+
+    // Set metadata to identify source of the operation
+    courseData.meta = {
+      source: 'express_sync'
+    };
+
+    // Ensure publishedAt is set
+    courseData.publishedAt = new Date();
+
+    // Create course using entityService
+    const course = await strapi.entityService.create('api::course.course', {
+      data: courseData
+    });
+
+    return { 
+      id: course.id,  // Strapi's internal ID 
+      ...course 
+    };
+  } catch (error) {
+    console.error(`Error creating course: ${error instanceof Error ? error.message : String(error)}`);
+    throw error;
+  }
+},
   
   /**
    * Update a course in Strapi
